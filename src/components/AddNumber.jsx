@@ -17,6 +17,7 @@ export default function AddNumber() {
             })
             if (!res.ok) throw new Error('Respuesta no válida del servidor')
             const datos = await res.json()
+            localStorage.setItem('pedidos_cache', JSON.stringify(datos))
             const enPreparacion = datos
                 .filter((p) => normalizarEstado(p.estado).includes('prepar'))
                 .map((p) => p.numero)
@@ -31,6 +32,26 @@ export default function AddNumber() {
             setPedidosListos(enListos)
         } catch (e) {
             console.error('Error cargando pedidos:', e)
+            const cache = localStorage.getItem('pedidos_cache')
+            if (cache) {
+                try {
+                    const datos = JSON.parse(cache)
+                    const enPreparacion = datos
+                        .filter((p) => normalizarEstado(p.estado).includes('prepar'))
+                        .map((p) => p.numero)
+                        .filter((n) => Number.isFinite(n))
+                        .sort((a, b) => a - b)
+                    const enListos = datos
+                        .filter((p) => normalizarEstado(p.estado).includes('list'))
+                        .map((p) => p.numero)
+                        .filter((n) => Number.isFinite(n))
+                        .sort((a, b) => a - b)
+                    setPedidosPreparando(enPreparacion)
+                    setPedidosListos(enListos)
+                } catch (cacheErr) {
+                    console.error('Cache parse error', cacheErr)
+                }
+            }
         } finally {
             setCargando(false)
         }
@@ -57,8 +78,30 @@ export default function AddNumber() {
                         .sort((a, b) => a - b)
                     setPedidosPreparando(enPreparacion)
                     setPedidosListos(enListos)
+                    localStorage.setItem('pedidos_cache', JSON.stringify(datos))
                 } catch (err) {
                     console.error('SSE parse error', err)
+                }
+            })
+            es.addEventListener('error', () => {
+                const cache = localStorage.getItem('pedidos_cache')
+                if (!cache) return
+                try {
+                    const datos = JSON.parse(cache)
+                    const enPreparacion = datos
+                        .filter((p) => normalizarEstado(p.estado).includes('prepar'))
+                        .map((p) => p.numero)
+                        .filter((n) => Number.isFinite(n))
+                        .sort((a, b) => a - b)
+                    const enListos = datos
+                        .filter((p) => normalizarEstado(p.estado).includes('list'))
+                        .map((p) => p.numero)
+                        .filter((n) => Number.isFinite(n))
+                        .sort((a, b) => a - b)
+                    setPedidosPreparando(enPreparacion)
+                    setPedidosListos(enListos)
+                } catch (cacheErr) {
+                    console.error('Cache parse error', cacheErr)
                 }
             })
         }

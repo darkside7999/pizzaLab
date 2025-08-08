@@ -37,6 +37,8 @@ app.get('/pedidos/stream', async (req, res) => {
   res.setHeader('Connection', 'keep-alive')
   // Para CORS en SSE
   res.setHeader('Access-Control-Allow-Origin', '*')
+  // Instruir reconexión del cliente
+  res.write(`retry: 5000\n\n`)
 
   const enviar = (pedidos) => {
     res.write(`event: update\n`)
@@ -128,10 +130,22 @@ function obtenerIPsLocales() {
   return results
 }
 
-app.listen(PORT, HOST, () => {
+const server = app.listen(PORT, HOST, () => {
   const ips = obtenerIPsLocales()
   const urls = ips.map((ip) => `http://${ip}:${PORT}`).join(', ')
   console.log(`Servidor escuchando en: ${urls || `http://${HOST}:${PORT}`}`)
+})
+
+// Ajustes de timeouts para conexiones móviles/SSE
+server.keepAliveTimeout = 65000
+server.headersTimeout = 66000
+
+// Manejo básico de errores no capturados para evitar caídas
+process.on('unhandledRejection', (reason) => {
+  console.error('UnhandledRejection:', reason)
+})
+process.on('uncaughtException', (err) => {
+  console.error('UncaughtException:', err)
 })
 
 

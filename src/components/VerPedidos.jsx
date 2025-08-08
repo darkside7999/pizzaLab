@@ -19,6 +19,7 @@ export default function VerPedidos() {
             if (!res.ok) throw new Error('Respuesta no válida del servidor')
 
             const datos = await res.json()
+            localStorage.setItem('pedidos_cache', JSON.stringify(datos))
 
             const normalizarEstado = (estado) => (estado || '').toString().toLowerCase()
 
@@ -38,9 +39,28 @@ export default function VerPedidos() {
             setListos(enListos)
         } catch (e) {
             console.error('Error cargando pedidos:', e)
-            setError('No se pudo conectar con el servidor. Mostrando datos de ejemplo.')
-            setPreparando([101, 102, 110, 115])
-            setListos([95, 96])
+            setError('No se pudo conectar con el servidor. Mostrando datos guardados.')
+            const cache = localStorage.getItem('pedidos_cache')
+            if (cache) {
+                try {
+                    const datos = JSON.parse(cache)
+                    const normalizarEstado = (estado) => (estado || '').toString().toLowerCase()
+                    const enPreparacion = datos
+                        .filter((p) => normalizarEstado(p.estado).includes('prepar'))
+                        .map((p) => p.numero)
+                        .filter((n) => Number.isFinite(n))
+                        .sort((a, b) => a - b)
+                    const enListos = datos
+                        .filter((p) => normalizarEstado(p.estado).includes('list'))
+                        .map((p) => p.numero)
+                        .filter((n) => Number.isFinite(n))
+                        .sort((a, b) => a - b)
+                    setPreparando(enPreparacion)
+                    setListos(enListos)
+                } catch (parseErr) {
+                    console.error('SSE parse error', parseErr)
+                }
+            }
         } finally {
             setCargando(false)
         }
@@ -106,10 +126,34 @@ export default function VerPedidos() {
                             .sort((a, b) => a - b)
                         setPreparando(enPreparacion)
                         setListos(enListos)
-                    } catch (err) {
+                } catch (err) {
                         console.error('SSE parse error', err)
                     }
                 })
+            es.addEventListener('error', () => {
+                // Intentar rehidratar desde cache si se pierde la conexión
+                const cache = localStorage.getItem('pedidos_cache')
+                if (cache) {
+                    try {
+                        const datos = JSON.parse(cache)
+                        const normalizarEstado = (estado) => (estado || '').toString().toLowerCase()
+                        const enPreparacion = datos
+                            .filter((p) => normalizarEstado(p.estado).includes('prepar'))
+                            .map((p) => p.numero)
+                            .filter((n) => Number.isFinite(n))
+                            .sort((a, b) => a - b)
+                        const enListos = datos
+                            .filter((p) => normalizarEstado(p.estado).includes('list'))
+                            .map((p) => p.numero)
+                            .filter((n) => Number.isFinite(n))
+                            .sort((a, b) => a - b)
+                        setPreparando(enPreparacion)
+                        setListos(enListos)
+                    } catch (cacheErr) {
+                        console.error('Cache parse error', cacheErr)
+                    }
+                }
+            })
             } catch (err) {
                 console.error('SSE connection error', err)
             }
