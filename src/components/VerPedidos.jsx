@@ -204,7 +204,7 @@ export default function VerPedidos() {
         return ({
         pagina: {
             padding: '5rem 2rem 3rem',
-            width: 'min(1100px, 92vw)',
+            width: isTV ? 'min(1800px, 95vw)' : 'min(1100px, 92vw)',
         },
         titulo: {
             textAlign: 'center',
@@ -216,19 +216,27 @@ export default function VerPedidos() {
             fontStyle: 'italic',
         },
         subtitulo: { textAlign: 'center', color: '#6b7280', marginTop: '-1rem', fontStyle: 'italic' },
-        secciones: {
-            display: 'flex',
-            gap: '2rem',
-            alignItems: 'stretch',
-            flexWrap: 'wrap',
-        },
-        columna: { flex: '1 1 460px' },
+        secciones: isTV
+            ? {
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '2rem',
+                alignItems: 'stretch',
+            }
+            : {
+                display: 'flex',
+                gap: '2rem',
+                alignItems: 'stretch',
+                flexWrap: 'wrap',
+            },
+        columna: isTV ? {} : { flex: '1 1 460px' },
         panel: {
             background: '#fff',
             padding: '1.5rem',
             borderRadius: '1rem',
             boxShadow: '0 6px 24px rgba(0,0,0,0.08)',
             minHeight: '320px',
+            height: '100%',
         },
         h2: { margin: '0 0 1rem', color: '#111827' },
         vacio: { color: '#6b7280', textAlign: 'center', marginTop: '2rem' },
@@ -271,7 +279,6 @@ export default function VerPedidos() {
 
     return (
         <div style={estilos.pagina}>
-            <h1 style={estilos.titulo}>Pizza Lab</h1>
             <div style={estilos.subtitulo}>Pedidos en tiempo real</div>
             <div style={tarjetas.contenedor}>
                 <div style={tarjetas.card}>
