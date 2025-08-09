@@ -220,7 +220,8 @@ export default function VerPedidos() {
             display: 'flex',
             gap: '2rem',
             alignItems: 'stretch',
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
         },
         columna: { flex: '1 1 460px' },
         panel: {
