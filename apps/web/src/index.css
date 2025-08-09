@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  @apply min-h-screen bg-neutral-950 text-neutral-100 antialiased;
+}
+
+a {
+  @apply text-emerald-400 hover:text-emerald-300;
+}
